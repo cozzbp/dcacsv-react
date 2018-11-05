@@ -57,6 +57,18 @@ const InputField = styled.div`
   align-items: center;
 `;
 
+const ImageWrapper = styled.img`
+  width: 300px;
+  box-shadow: 5px 5px rgba(0,0,0, 0.2);
+  border-radius: 2px;
+  float: left;
+  
+  margin-right: 10px;
+  &:before {
+    background-color: green;
+  }
+`;
+
 const FILE1 = 'FILE1';
 const HIT1 = 'HIT1';
 const FILE2 = 'FILE2';
@@ -196,7 +208,10 @@ export default class LandingPage extends React.Component {
     return (
       <HomeWrapper>
         <Header></Header>
-
+        <InputField>
+          <ImageWrapper src={'images/fasta.JPG'}/>
+          <ImageWrapper src={'images/csv.JPG'}/>
+        </InputField>
         <InputField>
           <Subheader>
             First Fasta Text File
