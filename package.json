@@ -45,8 +45,8 @@
     "webpack-manifest-plugin": "^1.0.1"
   },
   "scripts": {
-    "clean": "rm -r build/*",
-    "server": "webpack-dev-server --hot --inline --content-base build",
+    "clean": "rm -r docs/*",
+    "server": "webpack-dev-server --hot --inline --content-base docs",
     "deploy": "npm run build && node ./scripts/deploy.js",
     "dev": "webpack && npm run server",
     "build": "ENV=production WEBPACK_ENV=build ./node_modules/.bin/webpack -p --define process.env.NODE_ENV='\"production\"' --progress",

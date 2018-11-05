@@ -3,6 +3,6 @@ src/manifest.json
 tests/
 node_modules/
 coverage/
-build/
+docs/
 .storybook/
 .vscode/

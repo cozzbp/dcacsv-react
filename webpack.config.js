@@ -26,7 +26,7 @@ var config = {
     vendor: ['babel-polyfill', 'react', 'react-dom', 'react-redux', 'react-router', 'redux', 'lodash'],
   },
   output: {
-    path: path.join(__dirname, '/build'),
+    path: path.join(__dirname, '/docs'),
     filename: JS_FILENAME
   },
   resolve: {
