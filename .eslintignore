@@ -1,0 +1,8 @@
+webpack.config.js
+src/manifest.json
+tests/
+node_modules/
+coverage/
+build/
+.storybook/
+.vscode/
