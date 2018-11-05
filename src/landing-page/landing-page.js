@@ -73,6 +73,7 @@ const FILE1 = 'FILE1';
 const HIT1 = 'HIT1';
 const FILE2 = 'FILE2';
 const HIT2 = 'HIT2';
+const ORGANISM = 'ORGANISM';
 
 export default class LandingPage extends React.Component {
 
@@ -174,14 +175,34 @@ export default class LandingPage extends React.Component {
   }
 
   processFiles = () => {
-    const mapped1 = this.buildMap(_.get(this.state, '[FILE1].data', ''), _.get(this.state, '[HIT1].data', ''));
-    const mapped2 = this.buildMap(_.get(this.state, '[FILE2].data', ''), _.get(this.state, '[HIT2].data', ''));
+    const mapped1 = this.buildMap(_.get(this.state, `[${FILE1}].data`, ''), _.get(this.state, `[${HIT1}].data`, ''));
+    const mapped2 = this.buildMap(_.get(this.state, `[${FILE2}].data`, ''), _.get(this.state, `[${HIT2}].data`, ''));
+
+    const parsed = Papa.parse(_.get(this.state, `[${ORGANISM}].data`, ''));
+    const orgMap = {};
+    _.forEach(parsed.data, (value) => {
+      const key = _.get(value, '[2]');
+      const existing = orgMap[key];
+      if (_.isEmpty(existing)) {
+        orgMap[key] = {
+          Description: _.get(value, '[1]'),
+          Sort: _.get(value, '[0]'),
+        };
+      } else if (_.size(_.get(value, '[1]')) > _.size(existing.Description)) {
+        orgMap[key] = {
+          Description: _.get(value, '[1]'),
+          Sort: _.get(value, '[0]'),
+        };
+      }
+    });
 
     const final = [];
     _.forEach(mapped1, (value, key) => {
       const val2 = mapped2[key];
       if (!_.isEmpty(val2)) {
         final.push({
+          Sort: _.get(orgMap, `[${key}].Sort`),
+          Description: _.get(orgMap, `[${key}].Description`),
           ShortName: key,
           Organism1: value.OrganismName,
           PERCENTIDENT1: value.Hit,
@@ -216,14 +237,14 @@ export default class LandingPage extends React.Component {
           <Subheader>
             First Fasta Text File
           </Subheader>
-          <TextInput disabled value={_.get(this.state, '[FILE1].fileName', '')} valid={_.get(this.state, '[FILE1].data', true)}/>
+          <TextInput disabled value={_.get(this.state, `[${FILE1}].fileName`, '')} valid={_.get(this.state, '[FILE1].data', true)}/>
           <Button onClick={this.importFiles(FILE1)('.txt')}>Upload</Button>
         </InputField>
         <InputField>
           <Subheader>
             First Hit CSV File
           </Subheader>
-          <TextInput disabled value={_.get(this.state, '[HIT1].fileName', '')} valid={_.get(this.state, '[HIT1].data', true)}/>
+          <TextInput disabled value={_.get(this.state, `[${HIT1}].fileName`, '')} valid={_.get(this.state, '[HIT1].data', true)}/>
           <Button onClick={this.importFiles(HIT1)('.csv')}>Upload</Button>
         </InputField>
 
@@ -231,15 +252,22 @@ export default class LandingPage extends React.Component {
           <Subheader>
             Second Fasta Text File
           </Subheader>
-          <TextInput disabled value={_.get(this.state, '[FILE2].fileName', '')} valid={_.get(this.state, '[FILE2].data', true)}/>
+          <TextInput disabled value={_.get(this.state, `[${FILE2}].fileName`, '')} valid={_.get(this.state, '[FILE2].data', true)}/>
           <Button onClick={this.importFiles(FILE2)('.txt')}>Upload</Button>
         </InputField>
         <InputField>
           <Subheader>
           Second Hit CSV File
           </Subheader>
-          <TextInput disabled value={_.get(this.state, '[HIT2].fileName', '')} valid={_.get(this.state, '[HIT2].data', true)}/>
+          <TextInput disabled value={_.get(this.state, `[${HIT2}].fileName`, '')} valid={_.get(this.state, '[HIT2].data', true)}/>
           <Button onClick={this.importFiles(HIT2)('.csv')}>Upload</Button>
+        </InputField>
+        <InputField>
+          <Subheader>
+          (Optional) Organism Mapping CSV File
+          </Subheader>
+          <TextInput disabled value={_.get(this.state, `[${ORGANISM}].fileName`, '')} valid={_.get(this.state, '[ORGANISM].data', true)}/>
+          <Button onClick={this.importFiles(ORGANISM)('.csv')}>Upload</Button>
         </InputField>
         <SubmitButton onClick={this.processFiles}>Submit</SubmitButton>
       </HomeWrapper>
