@@ -77,24 +77,52 @@ const ORGANISM = 'ORGANISM';
 
 export default class LandingPage extends React.Component {
 
-  importFiles = key => type => () => {
+  importFiles = key => type => multiple => () => {
     const inputEl = document.createElement('input');
     inputEl.type = 'file';
     inputEl.accept = type;
     inputEl.value = '';
-    inputEl.addEventListener('change', this.handleFile.bind(null, inputEl, key));
+    inputEl.multiple = multiple;
+    inputEl.addEventListener('change', this.handleFile.bind(null, inputEl, key, multiple));
     inputEl.click();
   }
 
-  handleFile = (inputEl, key) => {
-    this.importCSV(inputEl.files, key);
+  handleFile = (inputEl, key, multiple) => {
+    if (multiple) {
+      this.multiImportCSV(inputEl.files, key);
+    } else {
+      this.importCSV(_.head(inputEl.files), key);
+    }
+
     inputEl.remove();
   }
 
-  importCSV = (files, key) => {
-    const firstFile = _.head(files);
+  multiImportCSV = (files, key) => {
     const allowedFileTypes = /.+(\.csv|\.txt)$/;
-    if (_.isEmpty(firstFile.name) || !firstFile.name.match(allowedFileTypes)) {
+
+    _.forEach(files, (file, i) => {
+      if (_.isEmpty(file.name) || !file.name.match(allowedFileTypes)) {
+        console.error('File must be a .csv or .txt file');
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        this.setState({
+          [key]: _.concat(_.get(this.state, `[${key}]`, []), {
+            fileName: file.name,
+            data: reader.result,
+          })
+        });
+      };
+
+      reader.readAsText(file);
+    });
+  };
+
+  importCSV = (file, key) => {
+    const allowedFileTypes = /.+(\.csv|\.txt)$/;
+    if (_.isEmpty(file.name) || !file.name.match(allowedFileTypes)) {
       console.error('File must be a .csv or .txt file');
       return;
     }
@@ -105,13 +133,13 @@ export default class LandingPage extends React.Component {
       // reader.result
       this.setState({
         [key]: {
-          fileName: firstFile.name,
+          fileName: file.name,
           data: reader.result,
         }
       });
     };
 
-    reader.readAsText(firstFile);
+    reader.readAsText(file);
   };
 
   getStripped = (value) => {
@@ -178,23 +206,27 @@ export default class LandingPage extends React.Component {
     const mapped1 = this.buildMap(_.get(this.state, `[${FILE1}].data`, ''), _.get(this.state, `[${HIT1}].data`, ''));
     const mapped2 = this.buildMap(_.get(this.state, `[${FILE2}].data`, ''), _.get(this.state, `[${HIT2}].data`, ''));
 
-    const parsed = Papa.parse(_.get(this.state, `[${ORGANISM}].data`, ''));
+
     const orgMap = {};
-    _.forEach(parsed.data, (value) => {
-      const key = _.get(value, '[2]');
-      const existing = orgMap[key];
-      if (_.isEmpty(existing)) {
-        orgMap[key] = {
-          Description: _.get(value, '[1]'),
-          Sort: _.get(value, '[0]'),
-        };
-      } else if (_.size(_.get(value, '[1]')) > _.size(existing.Description)) {
-        orgMap[key] = {
-          Description: _.get(value, '[1]'),
-          Sort: _.get(value, '[0]'),
-        };
-      }
+    _.forEach(_.get(this.state, `[${ORGANISM}]`, []), (dat) => {
+      const parsed = Papa.parse(_.get(dat, 'data'));
+      _.forEach(parsed.data, (value) => {
+        const key = _.get(value, '[2]');
+        const existing = orgMap[key];
+        if (_.isEmpty(existing)) {
+          orgMap[key] = {
+            Description: _.get(value, '[1]'),
+            Sort: _.get(value, '[0]'),
+          };
+        } else if (_.size(_.get(value, '[1]')) > _.size(existing.Description)) {
+          orgMap[key] = {
+            Description: _.get(value, '[1]'),
+            Sort: _.get(value, '[0]'),
+          };
+        }
+      });
     });
+
 
     const final = [];
     _.forEach(mapped1, (value, key) => {
@@ -238,14 +270,14 @@ export default class LandingPage extends React.Component {
             First Fasta Text File
           </Subheader>
           <TextInput disabled value={_.get(this.state, `[${FILE1}].fileName`, '')} valid={_.get(this.state, '[FILE1].data', true)}/>
-          <Button onClick={this.importFiles(FILE1)('.txt')}>Upload</Button>
+          <Button onClick={this.importFiles(FILE1)('.txt')(false)}>Upload</Button>
         </InputField>
         <InputField>
           <Subheader>
             First Hit CSV File
           </Subheader>
           <TextInput disabled value={_.get(this.state, `[${HIT1}].fileName`, '')} valid={_.get(this.state, '[HIT1].data', true)}/>
-          <Button onClick={this.importFiles(HIT1)('.csv')}>Upload</Button>
+          <Button onClick={this.importFiles(HIT1)('.csv')(false)}>Upload</Button>
         </InputField>
 
         <InputField>
@@ -253,21 +285,21 @@ export default class LandingPage extends React.Component {
             Second Fasta Text File
           </Subheader>
           <TextInput disabled value={_.get(this.state, `[${FILE2}].fileName`, '')} valid={_.get(this.state, '[FILE2].data', true)}/>
-          <Button onClick={this.importFiles(FILE2)('.txt')}>Upload</Button>
+          <Button onClick={this.importFiles(FILE2)('.txt')(false)}>Upload</Button>
         </InputField>
         <InputField>
           <Subheader>
           Second Hit CSV File
           </Subheader>
           <TextInput disabled value={_.get(this.state, `[${HIT2}].fileName`, '')} valid={_.get(this.state, '[HIT2].data', true)}/>
-          <Button onClick={this.importFiles(HIT2)('.csv')}>Upload</Button>
+          <Button onClick={this.importFiles(HIT2)('.csv')(false)}>Upload</Button>
         </InputField>
         <InputField>
           <Subheader>
-          (Optional) Organism Mapping CSV File
+          (Optional) Organism Mapping CSV File(s)
           </Subheader>
           <TextInput disabled value={_.get(this.state, `[${ORGANISM}].fileName`, '')} valid={_.get(this.state, '[ORGANISM].data', true)}/>
-          <Button onClick={this.importFiles(ORGANISM)('.csv')}>Upload</Button>
+          <Button onClick={this.importFiles(ORGANISM)('.csv')(true)}>Upload</Button>
         </InputField>
         <SubmitButton onClick={this.processFiles}>Submit</SubmitButton>
       </HomeWrapper>
