@@ -164,7 +164,7 @@ export default class LandingPage extends React.Component {
     const hitMap = {};
 
     _.forEach(parsed.data, (value) => {
-      hitMap[_.get(value, '[1]')] = _.get(value, '[2]');
+      hitMap[_.get(value, '[1]')] = parseFloat(_.get(value, '[2]'));
     });
 
     _.forEach(split, (value) => {
